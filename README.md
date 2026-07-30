@@ -8,6 +8,10 @@ Turn a video into a realistic 3D scene — entirely on your own machine.
 video --ffmpeg--> frames --COLMAP--> camera poses + sparse point cloud --Brush--> splat.ply
 ```
 
+| Source video | Resulting splat |
+|---|---|
+| ![source video](docs/assets/source_video.gif) | ![splat result](docs/assets/splat_result.gif) |
+
 ## Why this exists
 
 The motivation is simple: transform videos into realistic 3D scenes. That's it. This repository wires ffmpeg, COLMAP, and Brush together with the file layout, settings, and operational lessons (which matcher to use at what dataset size, how to tell a healthy run from a thrashing one, why a "small" dataset can still take hours if the machine's memory is oversubscribed) needed to actually get a video-to-splat pipeline working reliably on a normal Mac or Windows machine.
