@@ -55,12 +55,18 @@ Project folders are organized as `<project_name>/object_N/`, each one a fully in
 
 ## Viewing a result
 
+No server, no Python, nothing to install — bake the splat directly into a single HTML file and open it:
+
 ```bash
-python3 -m http.server 8934 --directory viewer
-# then open http://localhost:8934/?url=/path/to/your/splat.ply
+viewer/package.sh path/to/splat.ply
+# writes path/to/splat.html — double-click it, or open it directly in a browser
 ```
 
-Drag to orbit, scroll to zoom, or drag a `.ply` file straight onto the page to load it. The camera is a fixed-up-axis turntable — horizontal drag always yaws around vertical, unlike Brush's own arcball-style viewer, which can accumulate roll/tilt during a session.
+The `.ply` data is embedded straight into the page (browsers block loading local files over `file://` any other way), so the resulting file is fully self-contained — copy it anywhere, email it, whatever, it just opens. Drag to orbit, scroll to zoom. The camera is a fixed-up-axis turntable — horizontal drag always yaws around vertical, unlike Brush's own arcball-style viewer, which can accumulate roll/tilt during a session.
+
+You can also drag a different `.ply` straight onto the open page to view it without repackaging.
+
+Note: embedding inflates file size (base64 adds ~33%), and very large splats (hundreds of MB) can take a noticeable moment to open since the whole file has to be parsed before anything renders. Fine for typical single-object/room splats; for very large scenes, the fetch-based `?url=` mode (serve `viewer/` and pass a path) avoids that entirely.
 
 ## Project structure
 
@@ -73,7 +79,7 @@ example/                a worked example reconstruction (frames → COLMAP → B
 
 ## Status / roadmap
 
-The pipeline above works today, run by hand or by a coding agent following AGENTS.md. Still on the roadmap: fully autonomous dependency setup (an agent checking for and installing Homebrew/Chocolatey/COLMAP/Brush on request), a checklist-driven run through the whole pipeline with resumable failure handling, and a zero-dependency version of the viewer that needs no local server. See `docs/superpowers/specs/` for the current design.
+The pipeline above works today, run by hand or by a coding agent following AGENTS.md. Still on the roadmap: fully autonomous dependency setup (an agent checking for and installing Homebrew/Chocolatey/COLMAP/Brush on request) and a checklist-driven run through the whole pipeline with resumable failure handling. See `docs/superpowers/specs/` for the current design.
 
 ## Credits
 

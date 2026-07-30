@@ -535,17 +535,28 @@ let viewMatrix = buildViewMatrix(camYaw, camPitch, camDistance, camTarget);
 
 async function main() {
     const params = new URLSearchParams(location.search);
-    const url = new URL(params.get("url") || "splat.ply", location.href);
-    const req = await fetch(url, {
-        mode: "cors",
-        credentials: "omit",
-    });
-    if (req.status != 200)
-        throw new Error(req.status + " Unable to load " + req.url);
-
     const rowLength = 3 * 4 + 3 * 4 + 4 + 4;
-    const reader = req.body.getReader();
-    let splatData = new Uint8Array(Number(req.headers.get("content-length")));
+
+    // If a splat was baked directly into this page (see package.sh), skip
+    // fetch entirely — needed because browsers block fetch() over file://,
+    // which is what makes double-click-to-open work with no local server.
+    let reader = null;
+    let splatData;
+    if (typeof window.__EMBEDDED_SPLAT_BASE64__ === "string") {
+        const binary = atob(window.__EMBEDDED_SPLAT_BASE64__);
+        splatData = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) splatData[i] = binary.charCodeAt(i);
+    } else {
+        const url = new URL(params.get("url") || "splat.ply", location.href);
+        const req = await fetch(url, {
+            mode: "cors",
+            credentials: "omit",
+        });
+        if (req.status != 200)
+            throw new Error(req.status + " Unable to load " + req.url);
+        reader = req.body.getReader();
+        splatData = new Uint8Array(Number(req.headers.get("content-length")));
+    }
 
     const downsample =
         splatData.length / rowLength > 500000 ? 1 : 1 / devicePixelRatio;
@@ -858,12 +869,16 @@ async function main() {
     let bytesRead = 0;
     let stopLoading = false;
 
-    while (true) {
-        const { done, value } = await reader.read();
-        if (done || stopLoading) break;
+    if (reader) {
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done || stopLoading) break;
 
-        splatData.set(value, bytesRead);
-        bytesRead += value.length;
+            splatData.set(value, bytesRead);
+            bytesRead += value.length;
+        }
+    } else {
+        bytesRead = splatData.length;
     }
     if (!stopLoading) {
         if (isPly(splatData)) {
