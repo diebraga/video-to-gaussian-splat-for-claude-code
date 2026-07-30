@@ -547,7 +547,11 @@ async function main() {
         splatData = new Uint8Array(binary.length);
         for (let i = 0; i < binary.length; i++) splatData[i] = binary.charCodeAt(i);
     } else {
-        const url = new URL(params.get("url") || "splat.ply", location.href);
+        // Defaults to this project's example splat when no ?url= is given,
+        // so the deployed demo has something to show out of the box.
+        const EXAMPLE_SPLAT_URL =
+            "https://vinl7vwdkafjykl2.public.blob.vercel-storage.com/example-N6C8vAnjZsJxG2XIfxPiqW40kvBHIK.ply";
+        const url = new URL(params.get("url") || EXAMPLE_SPLAT_URL, location.href);
         const req = await fetch(url, {
             mode: "cors",
             credentials: "omit",
@@ -555,11 +559,15 @@ async function main() {
         if (req.status != 200)
             throw new Error(req.status + " Unable to load " + req.url);
         reader = req.body.getReader();
-        splatData = new Uint8Array(Number(req.headers.get("content-length")));
+        // Some CDNs (e.g. Vercel Blob) don't expose content-length
+        // cross-origin, so this can't always be preallocated up front.
+        const contentLength = Number(req.headers.get("content-length"));
+        splatData = contentLength > 0 ? new Uint8Array(contentLength) : null;
     }
 
-    const downsample =
-        splatData.length / rowLength > 500000 ? 1 : 1 / devicePixelRatio;
+    const downsample = !splatData || splatData.length / rowLength > 500000
+        ? 1
+        : 1 / devicePixelRatio;
 
     const worker = new Worker(
         URL.createObjectURL(
@@ -818,7 +826,9 @@ async function main() {
             gl.clear(gl.COLOR_BUFFER_BIT);
             document.getElementById("spinner").style.display = "";
         }
-        const progress = (100 * vertexCount) / (splatData.length / rowLength);
+        const progress = splatData
+            ? (100 * vertexCount) / (splatData.length / rowLength)
+            : 0;
         if (progress < 100) {
             document.getElementById("progress").style.width = progress + "%";
         } else {
@@ -869,13 +879,29 @@ async function main() {
     let bytesRead = 0;
     let stopLoading = false;
 
-    if (reader) {
+    if (reader && splatData) {
         while (true) {
             const { done, value } = await reader.read();
             if (done || stopLoading) break;
 
             splatData.set(value, bytesRead);
             bytesRead += value.length;
+        }
+    } else if (reader) {
+        // Unknown length ahead of time — accumulate chunks and concat once
+        // the stream ends, instead of pre-allocating.
+        const chunks = [];
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done || stopLoading) break;
+            chunks.push(value);
+            bytesRead += value.length;
+        }
+        splatData = new Uint8Array(bytesRead);
+        let offset = 0;
+        for (const chunk of chunks) {
+            splatData.set(chunk, offset);
+            offset += chunk.length;
         }
     } else {
         bytesRead = splatData.length;
