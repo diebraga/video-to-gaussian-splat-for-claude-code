@@ -1,8 +1,9 @@
 .DS_Store
 
 # Reconstruction data/output — regenerated locally, not checked in.
+# example/ is intentionally kept and committed via Git LFS as a worked
+# reference — see README.
 my_house/
-example/
 viewer/*.ply
 viewer/*.splat
 
