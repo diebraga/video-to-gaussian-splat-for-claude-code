@@ -15,8 +15,19 @@ This replaces the current house/room-oriented workflow with a simpler,
 generic one, and removes everything related to collision-mesh generation and
 splat merging (out of scope for this flow).
 
+## Naming
+
+The project is renamed to **video-to-gaussian-splat** — precise about the
+actual deliverable (a Gaussian Splat, not a generic mesh/point cloud), and
+reads cleanly as a repo name. The local folder on disk is renamed to match
+(`3d-reconstructions` → `video-to-gaussian-splat`), not just the docs/title,
+so it's consistent everywhere including whenever a GitHub repo is created
+later.
+
 ## Repo cleanup (one-time)
 
+- Rename the project folder itself: `3d-reconstructions` →
+  `video-to-gaussian-splat`.
 - Delete `Sources/` (stray Swift/AR file, unrelated to this pipeline) and
   `target/` (stray build artifacts).
 - Rename `coverage_scout_tests/` → `example/`. This keeps the existing
