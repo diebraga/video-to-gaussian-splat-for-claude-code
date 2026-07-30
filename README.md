@@ -66,7 +66,9 @@ viewer/package.sh path/to/splat.ply
 
 The `.ply` data is embedded straight into the page (browsers block loading local files over `file://` any other way), so the resulting file is fully self-contained — copy it anywhere, email it, whatever, it just opens. Drag to orbit, scroll to zoom. The camera is a fixed-up-axis turntable — horizontal drag always yaws around vertical, unlike Brush's own arcball-style viewer, which can accumulate roll/tilt during a session.
 
-This is entirely local and offline by design: this repo is a pipeline, not a web app, and no result from an actual run ever leaves your machine. A live demo of the viewer itself (empty, load-your-own-file only) is deployed separately at [viewer-amber-xi.vercel.app](https://viewer-amber-xi.vercel.app) — that's just a public showcase of the viewer, unrelated to and not required by the actual pipeline above.
+This is entirely local and offline by design: this repo is a pipeline, not a web app, and no result from an actual run ever leaves your machine.
+
+A live demo of the *example* splat is deployed separately at [viewer-amber-xi.vercel.app](https://viewer-amber-xi.vercel.app) — unrelated to and not required by the pipeline above. It redirects to [SuperSplat's hosted editor](https://superspl.at/editor) (`?load=<url>`, a query param it supports natively) rather than this repo's own lightweight viewer, since SuperSplat's full PlayCanvas rendering (complete spherical harmonics, LOD) and camera controls (orbit + free-fly) are noticeably better than what this repo's zero-dependency viewer aims for. That tradeoff only makes sense for a *public* demo pointed at a file that already has a URL — it doesn't apply to local results, which stay local.
 
 You can also drag a different `.ply` straight onto the open page to view it without repackaging.
 
