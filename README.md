@@ -64,6 +64,8 @@ viewer/package.sh path/to/splat.ply
 
 The `.ply` data is embedded straight into the page (browsers block loading local files over `file://` any other way), so the resulting file is fully self-contained — copy it anywhere, email it, whatever, it just opens. Drag to orbit, scroll to zoom. The camera is a fixed-up-axis turntable — horizontal drag always yaws around vertical, unlike Brush's own arcball-style viewer, which can accumulate roll/tilt during a session.
 
+This is entirely local and offline by design: this repo is a pipeline, not a web app, and no result from an actual run ever leaves your machine. A live demo of the viewer itself (empty, load-your-own-file only) is deployed separately at [viewer-amber-xi.vercel.app](https://viewer-amber-xi.vercel.app) — that's just a public showcase of the viewer, unrelated to and not required by the actual pipeline above.
+
 You can also drag a different `.ply` straight onto the open page to view it without repackaging.
 
 Note: embedding inflates file size (base64 adds ~33%), and very large splats (hundreds of MB) can take a noticeable moment to open since the whole file has to be parsed before anything renders. Fine for typical single-object/room splats; for very large scenes, the fetch-based `?url=` mode (serve `viewer/` and pass a path) avoids that entirely.
