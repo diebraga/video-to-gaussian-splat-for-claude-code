@@ -1,6 +1,6 @@
-# video-to-gaussian-splat
+# video-to-gaussian-splat-for-claude-code
 
-Turn a phone-shot walkthrough video into a 3D Gaussian Splat — entirely on your own machine, no cloud service, no subscription, no CUDA/Windows-only toolchain required.
+Turn a video into a realistic 3D scene — entirely on your own machine.
 
 ```
 video --ffmpeg--> frames --COLMAP--> camera poses + sparse point cloud --Brush--> splat.ply
@@ -8,11 +8,7 @@ video --ffmpeg--> frames --COLMAP--> camera poses + sparse point cloud --Brush--
 
 ## Why this exists
 
-Apps like Polycam and Scaniverse make room/object scanning feel effortless, but that ease comes at a cost: your footage and the resulting model live on someone else's servers, processing is metered or subscription-gated, and you have no visibility into (or control over) what's actually happening between "record a video" and "get a 3D model." For anyone who wants to actually understand the pipeline — or just doesn't want to hand a video of their home to a third party to get a point cloud back — that's a bad trade.
-
-Gaussian Splatting itself is not proprietary. The underlying steps — structure-from-motion to recover camera poses, then optimizing a cloud of Gaussians to reproduce the input photos — are open research (Kerbl et al., 2023) with strong open-source implementations. What's missing isn't the technology, it's a straightforward, glue-code-free path from "I have a video" to "I have a splat," running on hardware people already own.
-
-That's what this repository is: COLMAP and Brush, wired together with the file-layout and settings that actually work in practice, plus the operational lessons (which matcher to use at what dataset size, how to tell a healthy run from a thrashing one, why a "small" dataset can still take hours if the machine's memory is oversubscribed) that aren't obvious the first time you try this. It's meant to be reproducible on a normal Mac or Windows machine, not a research cluster.
+The motivation is simple: transform videos into realistic 3D scenes. That's it. This repository wires ffmpeg, COLMAP, and Brush together with the file layout, settings, and operational lessons (which matcher to use at what dataset size, how to tell a healthy run from a thrashing one, why a "small" dataset can still take hours if the machine's memory is oversubscribed) needed to actually get a video-to-splat pipeline working reliably on a normal Mac or Windows machine.
 
 ## What it does
 
