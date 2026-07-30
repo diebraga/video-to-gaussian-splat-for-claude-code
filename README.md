@@ -1,5 +1,7 @@
 # video-to-gaussian-splat-for-claude-code
 
+**[Live viewer demo →](https://viewer-amber-xi.vercel.app)**
+
 Turn a video into a realistic 3D scene — entirely on your own machine.
 
 ```
