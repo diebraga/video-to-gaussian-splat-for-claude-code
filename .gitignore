@@ -1,0 +1,10 @@
+.DS_Store
+
+# Reconstruction data/output — regenerated locally, not checked in.
+my_house/
+example/
+viewer/*.ply
+viewer/*.splat
+
+# Stray build artifacts, unrelated to this pipeline.
+target/
