@@ -1,9 +1,16 @@
 .DS_Store
 
 # Reconstruction data/output — regenerated locally, not checked in.
-# example/ is intentionally kept and committed via Git LFS as a worked
-# reference — see README.
+# The one exception is example/object_01's final splat.ply (via Git
+# LFS) — kept as a worked reference, see README. Everything else
+# (raw video, frames, COLMAP workspace) stays local/regenerable.
 my_house/
+example/object_01/raw/
+example/object_01/video1/
+example/object_01/images_combined/
+example/object_01/colmap_workspace/
+example/object_01/brush_dataset/
+example/object_01/brush_output/*.log
 viewer/*.ply
 viewer/*.splat
 
