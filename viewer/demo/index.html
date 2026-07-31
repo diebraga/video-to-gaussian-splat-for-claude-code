@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>video-to-gaussian-splat — example</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { background: #000; color: #fff; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+  </style>
+</head>
+<body>
+  <p>Loading the example in SuperSplat…</p>
+  <script>
+    // The demo defers to SuperSplat's hosted editor for better rendering
+    // (full spherical harmonics, LOD) and richer camera controls (orbit +
+    // fly) than this repo's own lightweight local viewer — see README.
+    var EXAMPLE_SPLAT_URL = "https://vinl7vwdkafjykl2.public.blob.vercel-storage.com/example-N6C8vAnjZsJxG2XIfxPiqW40kvBHIK.ply";
+    location.replace("https://superspl.at/editor?load=" + encodeURIComponent(EXAMPLE_SPLAT_URL));
+  </script>
+</body>
+</html>

@@ -190,13 +190,19 @@ python3 scripts/normalize_up.py \
 - Sanity-check the printed correction angle: a few degrees is the expected case for a normal walking capture. Tens of degrees usually means the capture wasn't a level walkthrough (e.g. orbiting a tabletop object with the phone angled down) — the correction is less reliable in that case and the result is worth a visual check before trusting it blindly.
 - Pass `--out <path>` to write to a new file instead of overwriting; omit it to normalize in place.
 
-### 7. Open the finished splat for the user
+### 7. Open the finished splat for the user — automatically, locally, no internet
+
+Once `brush_output/splat_<name>.ply` exists, package it into a single self-contained HTML file with this repo's own viewer and open it — this is the default "show the result" step, not optional/manual:
 
 ```bash
-~/bin/brush_app "<BASE>/brush_output/splat_<name>.ply"
+viewer/package.sh "<BASE>/brush_output/splat_<name>.ply"
+open "<BASE>/brush_output/splat_<name>.html"   # macOS; use the OS equivalent elsewhere
 ```
 
-Opens directly in Brush's own viewer, entirely local. This project does not vendor or maintain its own splat viewer — an earlier attempt at one was removed. For a quick browser-based look without this Mac, drag-and-drop the `.ply` onto [SuperSplat's hosted editor](https://superspl.at/editor) instead.
+This is entirely local — no server, no upload, no internet connection needed. It's the intended default every time training finishes, not something the user has to ask for separately.
+
+- Why not just `~/bin/brush_app "<path/to/splat.ply>"` (Brush's own viewer)? It works, but its camera is arcball-style and can accumulate roll/tilt as you orbit — this repo's viewer uses a fixed-up-axis turntable instead (drag always yaws/pitches cleanly, never tilts).
+- The deployed demo at `viewer/` on Vercel (see README) is a separate, standalone showcase of the viewer itself — it is **not** part of this per-result flow and nothing from a real run is ever uploaded there. Every actual result stays local.
 
 ## Known gotchas (do not repeat these mistakes)
 
