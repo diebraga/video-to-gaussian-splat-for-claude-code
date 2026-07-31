@@ -169,7 +169,28 @@ disown
 - If the source video was shot at 4K, `--max-resolution 3840` would use the full detail instead of the default 1920px cap — **but be careful with this on large datasets, see gotcha below: it caused severe memory thrashing on this Mac (16GB RAM) with 874 images.** Default to leaving `--max-resolution` unset (1920 default) unless the dataset is small (roughly under ~400 images) or you're actively monitoring memory.
 - Long-running: launch in background, then poll with a `run_in_background` wait loop or `Monitor` rather than blocking.
 
-### 6. Open the finished splat for the user — automatically, locally, no internet
+### 6. Normalize the scene's up axis — always run this before viewing
+
+COLMAP has no notion of true gravity, so the reconstruction's "up" is
+usually tilted a few degrees off vertical. This is easy to miss by eye —
+front/back views can look level while left/right views are visibly
+tilted, since the further you orbit from the two azimuths where the tilt
+happens to project to zero, the more roll shows up. Fix it in place, right
+after training, before anyone looks at the result:
+
+```bash
+python3 scripts/normalize_up.py \
+  --colmap-sparse "<BASE>/colmap_workspace/sparse/0" \
+  --ply "<BASE>/brush_output/splat_<name>.ply"
+```
+
+- Requires `numpy` and `scipy` (`python3 -m pip install numpy scipy` if missing) and the `colmap` CLI on PATH (already required for step 3).
+- Post-processes the finished `.ply` in place — does **not** require re-running COLMAP or Brush. Safe to run again later on an existing export.
+- How it works: averages every registered camera's own "up" direction from the COLMAP sparse model (a handheld walkthrough keeps the phone roughly upright on average, so this is a solid estimate of true up), then rotates every splat's position *and* its own orientation quaternion to align that estimate with +Y — Brush's own documented vertical-axis convention.
+- Sanity-check the printed correction angle: a few degrees is the expected case for a normal walking capture. Tens of degrees usually means the capture wasn't a level walkthrough (e.g. orbiting a tabletop object with the phone angled down) — the correction is less reliable in that case and the result is worth a visual check before trusting it blindly.
+- Pass `--out <path>` to write to a new file instead of overwriting; omit it to normalize in place.
+
+### 7. Open the finished splat for the user — automatically, locally, no internet
 
 Once `brush_output/splat_<name>.ply` exists, package it into a single self-contained HTML file with this repo's own viewer and open it — this is the default "show the result" step, not optional/manual:
 

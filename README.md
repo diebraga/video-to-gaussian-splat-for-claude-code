@@ -21,7 +21,8 @@ The motivation is simple: transform videos into realistic 3D scenes. That's it. 
 1. **ffmpeg** samples frames from your source video(s).
 2. **COLMAP** performs structure-from-motion: from the frames alone, it estimates where the camera was for every shot and produces a sparse 3D point cloud.
 3. **Brush** trains a Gaussian Splat from COLMAP's cameras + point cloud — the actual optimization step that turns sparse points into a dense, renderable 3D scene.
-4. A **lightweight vendored splat viewer** (`viewer/`) lets you look at the result in a browser with a proper turntable orbit camera (drag = rotate around a fixed vertical axis, never tilts), instead of needing Brush's own desktop viewer or a third-party site.
+4. **`scripts/normalize_up.py`** levels the result. COLMAP has no notion of true gravity, so the reconstruction's "up" is usually tilted a few degrees off vertical — this averages every registered camera's own "up" direction (a handheld walkthrough keeps the phone roughly upright on average) and rotates the whole splat to align it with true vertical. A post-process on the finished `.ply`, no retraining needed.
+5. A **lightweight vendored splat viewer** (`viewer/`) lets you look at the result in a browser with a proper turntable orbit camera (drag = rotate around a fixed vertical axis, never tilts), instead of needing Brush's own desktop viewer or a third-party site.
 
 The output of step 3 is a single `.ply` file — a Gaussian Splat — that can be viewed, shared, or brought into any tool that understands the format (Brush's own viewer, [SuperSplat](https://superspl.at/editor), the vendored viewer here, etc.).
 
@@ -55,6 +56,9 @@ colmap mapper --database_path colmap_workspace/database.db --image_path images_c
 
 # 3. Train the splat
 brush_app brush_dataset --with-viewer --total-steps 15000 --export-path brush_output --export-name splat.ply
+
+# 4. Level it (requires numpy + scipy: python3 -m pip install numpy scipy)
+python3 scripts/normalize_up.py --colmap-sparse colmap_workspace/sparse/0 --ply brush_output/splat.ply
 ```
 
 Project folders are organized as `<project_name>/object_N/`, each one a fully independent capture — see AGENTS.md for the exact layout and why reconstructions are never merged at the raw-frame level.
