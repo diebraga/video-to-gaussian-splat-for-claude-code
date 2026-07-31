@@ -1,7 +1,5 @@
 # video-to-gaussian-splat-for-claude-code
 
-**[Live viewer demo →](https://viewer-amber-xi.vercel.app)**
-
 Turn a video into a realistic 3D scene — entirely on your own machine.
 
 ```
@@ -22,9 +20,8 @@ The motivation is simple: transform videos into realistic 3D scenes. That's it. 
 2. **COLMAP** performs structure-from-motion: from the frames alone, it estimates where the camera was for every shot and produces a sparse 3D point cloud.
 3. **Brush** trains a Gaussian Splat from COLMAP's cameras + point cloud — the actual optimization step that turns sparse points into a dense, renderable 3D scene.
 4. **`scripts/normalize_up.py`** levels the result. COLMAP has no notion of true gravity, so the reconstruction's "up" is usually tilted a few degrees off vertical — this averages every registered camera's own "up" direction (a handheld walkthrough keeps the phone roughly upright on average) and rotates the whole splat to align it with true vertical. A post-process on the finished `.ply`, no retraining needed.
-5. A **lightweight vendored splat viewer** (`viewer/`) lets you look at the result in a browser with a proper turntable orbit camera (drag = rotate around a fixed vertical axis, never tilts), instead of needing Brush's own desktop viewer or a third-party site.
 
-The output of step 3 is a single `.ply` file — a Gaussian Splat — that can be viewed, shared, or brought into any tool that understands the format (Brush's own viewer, [SuperSplat](https://superspl.at/editor), the vendored viewer here, etc.).
+The output of step 3 is a single `.ply` file — a Gaussian Splat — that can be viewed, shared, or brought into any tool that understands the format. See [Viewing a result](#viewing-a-result) below.
 
 ## Requirements
 
@@ -65,28 +62,16 @@ Project folders are organized as `<project_name>/object_N/`, each one a fully in
 
 ## Viewing a result
 
-No server, no Python, nothing to install — bake the splat directly into a single HTML file and open it:
+This project does not ship its own splat viewer. Use one of:
 
-```bash
-viewer/package.sh path/to/splat.ply
-# writes path/to/splat.html — double-click it, or open it directly in a browser
-```
-
-The `.ply` data is embedded straight into the page (browsers block loading local files over `file://` any other way), so the resulting file is fully self-contained — copy it anywhere, email it, whatever, it just opens. Drag to orbit, scroll to zoom. The camera is a fixed-up-axis turntable — horizontal drag always yaws around vertical, unlike Brush's own arcball-style viewer, which can accumulate roll/tilt during a session.
-
-This is entirely local and offline by design: this repo is a pipeline, not a web app, and no result from an actual run ever leaves your machine.
-
-A live demo of the *example* splat is deployed separately at [viewer-amber-xi.vercel.app](https://viewer-amber-xi.vercel.app) — unrelated to and not required by the pipeline above. It redirects to [SuperSplat's hosted editor](https://superspl.at/editor) (`?load=<url>`, a query param it supports natively) rather than this repo's own lightweight viewer, since SuperSplat's full PlayCanvas rendering (complete spherical harmonics, LOD) and camera controls (orbit + free-fly) are noticeably better than what this repo's zero-dependency viewer aims for. That tradeoff only makes sense for a *public* demo pointed at a file that already has a URL — it doesn't apply to local results, which stay local.
-
-You can also drag a different `.ply` straight onto the open page to view it without repackaging.
-
-Note: embedding inflates file size (base64 adds ~33%), and very large splats (hundreds of MB) can take a noticeable moment to open since the whole file has to be parsed before anything renders. Fine for typical single-object/room splats; for very large scenes, the fetch-based `?url=` mode (serve `viewer/` and pass a path) avoids that entirely.
+- **Brush's own viewer**, entirely local: `~/bin/brush_app path/to/splat.ply`
+- **[SuperSplat's hosted editor](https://superspl.at/editor)** — drag-and-drop the `.ply`, no install. Full PlayCanvas rendering and orbit/fly camera controls, at the cost of uploading the file to a third-party site.
 
 ## Project structure
 
 ```
-AGENTS.md              full pipeline reference: commands, folder layout, every gotcha
-viewer/                 vendored lightweight Gaussian Splat viewer (HTML + JS)
+AGENTS.md               full pipeline reference: commands, folder layout, every gotcha
+scripts/                pipeline scripts (e.g. normalize_up.py)
 docs/superpowers/specs/ design docs for ongoing work on this repo
 example/                a worked example reconstruction (frames → COLMAP → Brush output)
 ```
@@ -99,5 +84,4 @@ The pipeline above works today, run by hand or by a coding agent following AGENT
 
 - [COLMAP](https://colmap.github.io/) — structure-from-motion
 - [Brush](https://github.com/ArthurBrussee/brush) — Gaussian Splat training, Rust/wgpu
-- [antimatter15/splat](https://github.com/antimatter15/splat) (MIT) — the WebGL rendering/sorting pipeline the vendored viewer in `viewer/` is built on
 - Gaussian Splatting itself: Kerbl, Kopanas, Leimkühler, Drettakis, *3D Gaussian Splatting for Real-Time Radiance Field Rendering*, SIGGRAPH 2023
