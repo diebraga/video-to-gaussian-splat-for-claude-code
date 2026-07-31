@@ -176,7 +176,15 @@ usually tilted a few degrees off vertical. This is easy to miss by eye —
 front/back views can look level while left/right views are visibly
 tilted, since the further you orbit from the two azimuths where the tilt
 happens to project to zero, the more roll shows up. Fix it in place, right
-after training, before anyone looks at the result:
+after training, before anyone looks at the result.
+
+**Before running this, ask the user: do you have a `scan_metadata.json`
+from Coverage Scout (or another ARKit-based capture app) for this room?**
+Almost nobody using this pipeline will — it comes from a separate,
+optional companion app — so "no" is the expected default answer, not
+something to chase down. Branch on the answer:
+
+**No ARKit metadata (default, works for everyone):**
 
 ```bash
 python3 scripts/normalize_up.py \
@@ -184,11 +192,31 @@ python3 scripts/normalize_up.py \
   --ply "<BASE>/brush_output/splat_<name>.ply"
 ```
 
+- How it works: averages every registered camera's own "up" direction from the COLMAP sparse model (a handheld walkthrough keeps the phone roughly upright on average, so this is a solid *statistical* estimate of true up), then rotates every splat's position *and* its own orientation quaternion to align that estimate with +Y — Brush's own documented vertical-axis convention.
+- Sanity-check the printed correction angle: a few degrees is the expected case for a normal walking capture. Tens of degrees usually means the capture wasn't a level walkthrough (e.g. orbiting a tabletop object with the phone angled down) — the correction is less reliable in that case and the result is worth a visual check before trusting it blindly.
+
+**Yes, ARKit metadata is available:**
+
+```bash
+python3 scripts/normalize_up.py \
+  --colmap-sparse "<BASE>/colmap_workspace/sparse/0" \
+  --ply "<BASE>/brush_output/splat_<name>.ply" \
+  --arkit-metadata "<path/to/scan_metadata.json>" \
+  --video-subfolder "<videoN whose footage is the ARKit-tracked one>" \
+  --fps <the fps used in step 1's ffmpeg extraction for that video>
+```
+
+- How it works: ARKit's world Y-axis is gravity-true by construction (from the phone's IMU, not guessed from pixels). This mode matches COLMAP's registered frames to ARKit frames by reconstructed timestamp (frame number / fps), then solves for the rotation that best aligns COLMAP's camera-position trajectory onto ARKit's (a measured Kabsch/Wahba fit, not a statistical average) — generally more accurate than the default mode, especially for captures that aren't a level walkthrough.
+- `--video-subfolder` is required and scopes matching to one `videoN/` folder deliberately: frame numbering restarts at 1 in every `videoN/` (see folder structure above), so without this a `video2/frame_00042.jpg` could silently match `video1`'s ARKit timestamp for the same frame number.
+- `--fps` must match whatever `fps=<...>` was actually used in step 1 for that specific video — needed to reconstruct each COLMAP frame's timestamp from its filename.
+- Sanity-check the printed match count and position-fit RMSD (in COLMAP's own arbitrary units) — the script requires at least 6 matched frames and errors out otherwise (usually means `--video-subfolder` or `--fps` is wrong).
+
+**Either mode:**
+
 - Requires `numpy` and `scipy` (`python3 -m pip install numpy scipy` if missing) and the `colmap` CLI on PATH (already required for step 3).
 - Post-processes the finished `.ply` in place — does **not** require re-running COLMAP or Brush. Safe to run again later on an existing export.
-- How it works: averages every registered camera's own "up" direction from the COLMAP sparse model (a handheld walkthrough keeps the phone roughly upright on average, so this is a solid estimate of true up), then rotates every splat's position *and* its own orientation quaternion to align that estimate with +Y — Brush's own documented vertical-axis convention.
-- Sanity-check the printed correction angle: a few degrees is the expected case for a normal walking capture. Tens of degrees usually means the capture wasn't a level walkthrough (e.g. orbiting a tabletop object with the phone angled down) — the correction is less reliable in that case and the result is worth a visual check before trusting it blindly.
 - Pass `--out <path>` to write to a new file instead of overwriting; omit it to normalize in place.
+- `scripts/test_normalize_up.py` is a dependency-free self-check for the alignment math (synthetic data, no real capture needed) — run it after touching `normalize_up.py`.
 
 ### 7. Open the finished splat for the user — automatically, locally, no internet
 
